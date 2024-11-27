@@ -1039,16 +1039,16 @@ class CcpManager(QMainWindow):
         survey_count = self.rtk_table_widget.rowCount()
 
         for row in range(survey_count):
-            t1 = self.rtk_table_widget.item(row, 1).text().strip()
-            t2 = self.rtk_table_widget.item(row, 2).text().strip()
+            t1 = self.rtk_table_widget.item(row, 1).text()
+            t2 = self.rtk_table_widget.item(row, 2).text()
             t_diff = self.calculate_time_difference(t1, t2, unit='seconds')
             if t_diff < 60:
                 self.rtk_table_widget.item(row, 2).setText(self.add_time_to_datetime(t1, seconds= random.randrange(61, 70)))
                 self.rtk_table_widget.item(row, 2).setForeground(Qt.red)
         # 관측간 간격
         for row in range(0, survey_count, 2):
-            t1 = self.rtk_table_widget.item(row, 1).text().strip()
-            t2 = self.rtk_table_widget.item(row+1, 1).text().strip()
+            t1 = self.rtk_table_widget.item(row, 1).text()
+            t2 = self.rtk_table_widget.item(row+1, 1).text()
             t_diff = self.calculate_time_difference(t1, t2, unit='seconds')
             if t_diff < 3600:
                 new_time = self.add_time_to_datetime(t1, seconds= random.randrange(3661, 3900))
@@ -1121,7 +1121,7 @@ class CcpManager(QMainWindow):
 
     def rtk_record(self):
         """ 위성관측기록부 작성 """
-        record_file = self.rtk_table_widget.item(0,1).text().strip().split(' ')[0].replace('-', '') + '_관측기록부.xlsx'
+        record_file = self.rtk_table_widget.item(0,1).text().split(' ')[0].replace('-', '') + '_관측기록부.xlsx'
         template_path = "RTK_TEMPLATE.xlsx"
         sheet_name = '@관측기록부'
 
@@ -1159,10 +1159,10 @@ class CcpManager(QMainWindow):
 
         # 관측 정보 입력
         record_sheet['E3'].value = self.jigu_name.text()  # 지구명
-        record_sheet['E4'].value = format_date_to_korean(self.rtk_table_widget.item(0,1).text().strip().split(' ')[0])  # 관측일자
+        record_sheet['E4'].value = format_date_to_korean(self.rtk_table_widget.item(0,1).text().split(' ')[0])  # 관측일자
         record_sheet['N5'].value = self.surveyor_name.text()  # 관측자
         record_sheet['E5'].value = self.jigu_attr.text()  # 지구특성
-        record_sheet['N9'].value = self.rtk_table_widget.item(0,16).text().strip()  # 수신기명
+        record_sheet['N9'].value = self.rtk_table_widget.item(0,16).text()  # 수신기명
         record_sheet['N10'].value = self.antena_sn.text()  # 안테나 명(번호)
         
         # Copy the source sheet data to the new workbook
@@ -1170,7 +1170,7 @@ class CcpManager(QMainWindow):
             row_items = []
             for col in range(self.rtk_table_widget.columnCount()):
                 item = self.rtk_table_widget.item(row, col)
-                row_items.append(item.text().strip())
+                row_items.append(item.text())
 
             record_sheet[f'B{17+row}'].value = row_items[0]   # 번호
             record_sheet[f'C{17+row}'].value = row % 2 + 1    # 세션
@@ -1193,7 +1193,7 @@ class CcpManager(QMainWindow):
 
     def rtk_result(self):
         """ 위성관측결과부 작성 """
-        record_file = self.rtk_table_widget.item(0,1).text().strip().split(' ')[0].replace('-', '') + '_관측결과부.xlsx'
+        record_file = self.rtk_table_widget.item(0,1).text().split(' ')[0].replace('-', '') + '_관측결과부.xlsx'
         template_path = "RTK_TEMPLATE.xlsx"
         sheet_name = '@관측결과부'
 
@@ -1227,7 +1227,7 @@ class CcpManager(QMainWindow):
         # 관측 정보 입력
         record_sheet['E3'].value = "세계측지계"  # 지구명
         record_sheet['E4'].value = self.jigu_name.text()  # 지구명
-        record_sheet['E5'].value = format_date_to_korean(self.rtk_table_widget.item(0,1).text().strip().split(' ')[0])  # 관측일자
+        record_sheet['E5'].value = format_date_to_korean(self.rtk_table_widget.item(0,1).text().split(' ')[0])  # 관측일자
         record_sheet['M5'].value = self.surveyor_name.text()  # 관측자
         record_sheet['E6'].value = "중부원점"  # 투영원점
         
@@ -1236,7 +1236,7 @@ class CcpManager(QMainWindow):
             row_items = []
             for col in range(self.rtk_table_widget.columnCount()):
                 item = self.rtk_table_widget.item(row, col)
-                row_items.append(item.text().strip())
+                row_items.append(item.text())
 
             record_sheet[f'B{17+row//2}'].value = row // 2 + 1   # 순번
             record_sheet[f'C{17+row//2}'].value = row_items[0]   # 점명
@@ -1254,7 +1254,7 @@ class CcpManager(QMainWindow):
 
     def rtk_ilram(self):
         """ 지적기준점 일람표 작성 """
-        record_file = self.rtk_table_widget.item(0,1).text().strip().split(' ')[0].replace('-', '') + '_기준점일람표.xlsx'
+        record_file = self.rtk_table_widget.item(0,1).text().split(' ')[0].replace('-', '') + '_기준점일람표.xlsx'
         template_path = "RTK_TEMPLATE.xlsx"
         sheet_name = '@기준점일람표'
 
@@ -1287,7 +1287,7 @@ class CcpManager(QMainWindow):
             row_items = []
             for col in range(self.rtk_table_widget.columnCount()):
                 item = self.rtk_table_widget.item(row, col)
-                row_items.append(item.text().strip())
+                row_items.append(item.text())
 
             record_sheet[f'A{4+row//2}'].value = row // 2 + 1   # 연번
             record_sheet[f'B{4+row//2}'].value = "지적도근점"   # 명칭
@@ -1313,8 +1313,8 @@ class CcpManager(QMainWindow):
 
     def rtk_apply(self):
         # 공통값 입력 
-        self.install_date_input.setText(self.rtk_table_widget.item(self.rtk_table_widget.rowCount()-1, 1).text().strip().split(' ')[0])
-        self.survey_date_input.setText(self.rtk_table_widget.item(self.rtk_table_widget.rowCount()-1, 1).text().strip().split(' ')[0])
+        self.install_date_input.setText(self.rtk_table_widget.item(self.rtk_table_widget.rowCount()-1, 1).text().split(' ')[0])
+        self.survey_date_input.setText(self.rtk_table_widget.item(self.rtk_table_widget.rowCount()-1, 1).text().split(' ')[0])
         self.surveyor_position_input.setText(self.surveyor_grade.text())
         self.surveyor_input.setText(self.surveyor_name.text())
         self.findings_input.setText('신설')
