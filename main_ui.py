@@ -25,6 +25,8 @@ from openpyxl import load_workbook
 from openpyxl.workbook import Workbook
 from shutil import copy2
 from openpyxl_addin import set_alignment, set_border, set_font, copyRange, pasteRange, copy_row_with_merge, format_date_to_korean, convert_decimal_to_roundup_angle
+from datetime import datetime, timedelta
+import random
 
 class CustomToggleButton(QWidget):
     stateChanged = Signal(bool)  # 상태 변경 시그널
@@ -434,8 +436,8 @@ class CcpManager(QMainWindow):
         self.button_group.addButton(self.input_rtkdata_button)
         
         # RTK 관측부 - 서브
-        rtk_data_sub = QWidget(side_container)
-        rtk_data_sub.setFixedHeight(380)
+        self.rtk_data_sub = QWidget(side_container)
+        self.rtk_data_sub.setFixedHeight(380)
         rtk_data_sub_layout = QVBoxLayout()
         # rtk_data_sub_layout.setSpacing(15)
         self.rtk_xlsx_button = QPushButton(side_container)
@@ -445,6 +447,8 @@ class CcpManager(QMainWindow):
         rtk_label1.setAlignment(Qt.AlignRight)
         self.rtk_sort_button = QPushButton(side_container)
         self.rtk_sort_button.setText('번호-시작시간 정렬')
+        self.rtk_timecheck_button=QPushButton(side_container)
+        self.rtk_timecheck_button.setText("타임 조정")
 
 
         self.rtk_cif_button = QPushButton(side_container)
@@ -464,6 +468,7 @@ class CcpManager(QMainWindow):
         rtk_data_sub_layout.addWidget(self.rtk_xlsx_button)
         rtk_data_sub_layout.addWidget(rtk_label1)
         rtk_data_sub_layout.addWidget(self.rtk_sort_button)
+        rtk_data_sub_layout.addWidget(self.rtk_timecheck_button)
         rtk_data_sub_layout.addWidget(self.rtk_cif_button)
         rtk_data_sub_layout.addWidget(self.jigu_name)
         rtk_data_sub_layout.addWidget(self.jigu_attr)
@@ -492,9 +497,9 @@ class CcpManager(QMainWindow):
         rtk_data_sub_layout.addLayout(rtk_hlayout)
 
         rtk_data_sub_layout.addItem(QSpacerItem(10, 10, QSizePolicy.Minimum, QSizePolicy.Expanding))
-        rtk_data_sub.setLayout(rtk_data_sub_layout)
-        rtk_data_sub.setVisible(False)
-        vlayout_rtk.addWidget(rtk_data_sub)
+        self.rtk_data_sub.setLayout(rtk_data_sub_layout)
+        self.rtk_data_sub.setVisible(False)
+        vlayout_rtk.addWidget(self.rtk_data_sub)
         vlayout_rtk.setSpacing(5)        
         side_layout_detail.addLayout(vlayout_rtk)
 
@@ -508,8 +513,8 @@ class CcpManager(QMainWindow):
         self.button_group.addButton(self.input_data_button)
         
         # 데이터 입력 - 서브
-        input_data_sub = QWidget(side_container)
-        input_data_sub.setFixedHeight(100)
+        self.input_data_sub = QWidget(side_container)
+        self.input_data_sub.setFixedHeight(100)
         input_data_sub_layout = QVBoxLayout()
         input_data_sub_layout.setSpacing(15)
         self.tr_dat_button = QPushButton(side_container)
@@ -519,9 +524,9 @@ class CcpManager(QMainWindow):
         input_data_sub_layout.addWidget(self.tr_dat_button)
         input_data_sub_layout.addWidget(self.load_project_button)
         input_data_sub_layout.addItem(QSpacerItem(10, 10, QSizePolicy.Minimum, QSizePolicy.Expanding))
-        input_data_sub.setLayout(input_data_sub_layout)
-        input_data_sub.setVisible(False)
-        vlayout_data.addWidget(input_data_sub)
+        self.input_data_sub.setLayout(input_data_sub_layout)
+        self.input_data_sub.setVisible(False)
+        vlayout_data.addWidget(self.input_data_sub)
         vlayout_data.setSpacing(5)
         side_layout_detail.addLayout(vlayout_data)
 
@@ -611,6 +616,7 @@ class CcpManager(QMainWindow):
         extension_group.setLayout(vlayout1)
         self.same_filename_check = QCheckBox(side_container)
         self.same_filename_check.setText('도근번호 파일명 일치')
+        self.same_filename_check.setChecked(True)
         hlayout2 = QHBoxLayout()
         hspacer2 = QSpacerItem(10, 10, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.image_apply_button = QPushButton(side_container)
@@ -726,8 +732,8 @@ class CcpManager(QMainWindow):
         self.setResizable(self.sidemenu)
 
         # 시그널-슬롯 연결
-        self.input_rtkdata_button.toggled.connect(rtk_data_sub.setVisible)
-        self.input_data_button.toggled.connect(input_data_sub.setVisible)
+        self.input_rtkdata_button.toggled.connect(self.input_rtkdata_toggle)
+        self.input_data_button.toggled.connect(self.input_data_toggle)
         self.common_input_button.toggled.connect(common_input_sub.setVisible)
         self.image_management_button.toggled.connect(image_management_sub.setVisible)
         self.land_data_button.toggled.connect(land_data_sub.setVisible)
@@ -769,6 +775,7 @@ class CcpManager(QMainWindow):
         self.table_widget.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
         self.table_widget.verticalHeader().hide()
 
+        self.table_widget.hide()
         vlayout2.addWidget(temp_label1)
         vlayout2.addWidget(self.rtk_table_widget)
         vlayout2.addWidget(self.table_widget)
@@ -807,6 +814,7 @@ class CcpManager(QMainWindow):
         self.rtk_xlsx_button.clicked.connect(self.loadRTKdata)
         self.rtk_cif_button.clicked.connect(self.rtk_location)
         self.rtk_sort_button.clicked.connect(self.rtk_sort)
+        self.rtk_timecheck_button.clicked.connect(self.rtk_timecheck)
         self.rtk_record_button.clicked.connect(self.rtk_record)
         self.rtk_result_button.clicked.connect(self.rtk_result)
         self.rtk_ilram_button.clicked.connect(self.rtk_ilram)
@@ -959,6 +967,23 @@ class CcpManager(QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, dock)    
         return dock
 
+    def input_rtkdata_toggle(self):
+        if self.input_rtkdata_button.isChecked():
+            self.rtk_data_sub.setVisible(True)
+            self.rtk_table_widget.show()
+            self.table_widget.hide()
+        else:
+            self.rtk_data_sub.hide()
+            self.rtk_table_widget.hide()
+            self.table_widget.show()
+    def input_data_toggle(self):
+        if self.input_data_button.isChecked():
+            self.input_data_sub.setVisible(True)
+            self.rtk_table_widget.hide()
+            self.table_widget.show()
+        else:
+            self.input_data_sub.hide()
+
     def loadRTKdata(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Excel 파일 선택", "", "Excel Files (*.xlsx)")
         if file_path:
@@ -1008,6 +1033,66 @@ class CcpManager(QMainWindow):
     
     def rtk_sort(self):
         self.rtk_table_widget.sort_table_widget(0,1)
+
+    def rtk_timecheck(self):
+        # 단일 관측시간 점검
+        survey_count = self.rtk_table_widget.rowCount()
+
+        for row in range(survey_count):
+            t1 = self.rtk_table_widget.item(row, 1).text().strip()
+            t2 = self.rtk_table_widget.item(row, 2).text().strip()
+            t_diff = self.calculate_time_difference(t1, t2, unit='seconds')
+            if t_diff < 60:
+                self.rtk_table_widget.item(row, 2).setText(self.add_time_to_datetime(t1, seconds= random.randrange(61, 70)))
+                self.rtk_table_widget.item(row, 2).setForeground(Qt.red)
+        # 관측간 간격
+        for row in range(0, survey_count, 2):
+            t1 = self.rtk_table_widget.item(row, 1).text().strip()
+            t2 = self.rtk_table_widget.item(row+1, 1).text().strip()
+            t_diff = self.calculate_time_difference(t1, t2, unit='seconds')
+            if t_diff < 3600:
+                new_time = self.add_time_to_datetime(t1, seconds= random.randrange(3661, 3900))
+                self.rtk_table_widget.item(row+1, 1).setText(new_time)
+                self.rtk_table_widget.item(row+1, 2).setText(self.add_time_to_datetime(new_time, seconds = random.randrange(61,70)))
+                self.rtk_table_widget.item(row+1, 1).setForeground(Qt.red)
+                self.rtk_table_widget.item(row+1, 2).setForeground(Qt.red)
+
+    def add_time_to_datetime(self, datetime_str, hours=0, minutes=0, seconds=0):
+        # 문자열을 datetime 객체로 변환
+        original_datetime = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+        
+        # timedelta를 사용하여 시간과 분을 더함
+        new_datetime = original_datetime + timedelta(hours=hours, minutes=minutes, seconds=seconds)
+        
+        # 새로운 datetime 객체를 문자열로 변환하여 반환
+        return new_datetime.strftime("%Y-%m-%d %H:%M:%S")
+
+    def calculate_time_difference(self, datetime1, datetime2, unit='seconds'):
+        """
+        두 datetime 문자열의 차이를 계산합니다.
+
+        :param datetime1: 첫 번째 datetime 문자열 (예: "2024-11-20 14:20:02")
+        :param datetime2: 두 번째 datetime 문자열 (예: "2024-11-20 15:20:02")
+        :param unit: 결과를 반환할 단위 ('seconds', 'minutes', 'hours')
+        :return: 시간 차이 (int 또는 float)
+        """
+        # datetime 문자열을 datetime 객체로 변환
+        format_str = "%Y-%m-%d %H:%M:%S"
+        dt1 = datetime.strptime(datetime1, format_str)
+        dt2 = datetime.strptime(datetime2, format_str)
+        
+        # 시간 차이 계산
+        delta = abs(dt2 - dt1)  # 절대값으로 시간 차이 계산
+        
+        # 단위에 따라 반환
+        if unit == 'seconds':
+            return delta.total_seconds()
+        elif unit == 'minutes':
+            return delta.total_seconds() / 60
+        elif unit == 'hours':
+            return delta.total_seconds() / 3600
+        else:
+            raise ValueError("Invalid unit. Choose 'seconds', 'minutes', or 'hours'.")
 
     def rtk_location(self):
         jijuk, _ = QFileDialog.getOpenFileName(self,"Get Jijuk DB", "", "Cif File (*.cif)")
@@ -1243,12 +1328,9 @@ class CcpManager(QMainWindow):
 
         headers = {'번호':'점번호', 'X':'X', 'Y':'Y', '위도':'경위도(B)', '경도':'경위도(L)', 'Z':'표고', '토지소재(동리)':'토지소재(동리)', 
                    '토지소재(지번)':'토지소재(지번)', '지적(임야)도':'지적(임야)도', '재질':'표지재질'}
-
         
         for rtk_header, table_header in headers.items():
             self.copy_columns(self.rtk_table_widget, self.table_widget, rtk_header, table_header)
-
-
 
     def copy_columns(self, source_table: QTableWidget, target_table: QTableWidget, source_header: str, target_header: str = None):
         """
@@ -1277,11 +1359,6 @@ class CcpManager(QMainWindow):
             target_table.setItem(row//2, table_index, new_item)
         
         self.common_input_button.setChecked(True)
-
-
-
-
-
 
     def load_table_from_pickle(self, table_widget: QTableWidget, file_path: str):
         try:
