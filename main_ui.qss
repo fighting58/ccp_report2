@@ -31,6 +31,7 @@
         }
     #rtk_table_widget QLineEdit, #table_widget QLineEdit {
         background-color: #1a1b1c;
+        color: white;
         }
     #rtk_table_widget QHeaderView::section, #table_widget QHeaderView::section { 
         color: black;
